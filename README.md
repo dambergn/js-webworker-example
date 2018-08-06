@@ -12,3 +12,6 @@ Running something ASYNC can still cause stuttering within the DOM since it is st
 - Video Players
 - Live financial tickers
 - Heavy math calculations (what is being simulated here.)
+
+# Youtube example
+https://www.youtube.com/watch?v=O1WmnLCLk3Q
