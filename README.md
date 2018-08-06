@@ -14,4 +14,6 @@ Running something ASYNC can still cause stuttering within the DOM since it is st
 - Heavy math calculations (what is being simulated here.)
 
 # Youtube example
-https://www.youtube.com/watch?v=O1WmnLCLk3Q
+- https://www.youtube.com/watch?v=O1WmnLCLk3Q
+- https://www.youtube.com/watch?v=OgLemdR65pE
+- https://www.youtube.com/watch?v=LrK5HudphWY

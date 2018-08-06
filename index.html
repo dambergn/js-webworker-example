@@ -32,6 +32,16 @@
     <p>So what you are seeing happening here is the dom freezing while performing the intence calculation<br>
     but when using the web worker the DOM continues to render while the calculation is being performed on another thread.</p>
   </div>
+  <h4>Code being calculated.</h4>
+  <pre>
+  <code>
+    let testResult = 0;
+    for (let i = 0; i < 1000000 * 100; i++) {
+      let results = Math.random() * Math.random() * Math.random() / Math.random();
+      testResult = testResult + results;
+    }
+  </code>
+</pre>
 
 
   <script>
