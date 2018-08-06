@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- https://www.youtube.com/watch?v=OgLemdR65pE -->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Web Worker Test</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Web workers test example</h1>
+  <h3 id="web-workers-check">.</h3>
+  <canvas id="ctx" width="700" height="700"></canvas>
+  <br>
+  <button onclick="generateBalls(300)">Create Balls</button>
+  <button onclick="test1()">Without Worker</button>
+  <button onclick="test2()">With Worker</button>
+  <p id="test-message"></p>
+  <div id="content">
+    <p>The FPS of the canvas is set to 60 frames per second as you can see by the display.
+      <br> The test will work without the canvas animation but by clicking the Create Balls button it
+      <br> gives a visual representation of the degredation of performace.</p>
+    <p>When you click on the Without Worker button it runs a large math.random for loop to create an
+      <br> intense load on the thread the browser is running on.</p>
+    <p>So what you are seeing happening here is the dom freezing while performing the intence calculation<br>
+    but when using the web worker the DOM continues to render while the calculation is being performed on another thread.</p>
+  </div>
+
+
+  <script>
+    const ctx = document.getElementById('ctx').getContext('2d');
+    const WIDTH = document.getElementById('ctx').width
+    const HEIGHT = document.getElementById('ctx').height
+    ctx.font = '30px "Courier New", Courier, monospace';
+    ctx.fillStyle = 'black';
+    let test = 0;
+    let frameCount = 0;
+    let timeStarted = Date.now();
+    let ballList = {};
+    let ballCount = 0;
+    console.log('test before worker: ', test);
+
+    let Ball = function (id, x, y, spdX, spdY, width, height, color) {
+      let weapon = {
+        id: id,
+        x: x,
+        y: y,
+        spdX: spdX,
+        spdY: spdY,
+        width: width,
+        height: height,
+        color: color,
+      }
+      ballList[id] = weapon;
+    }
+
+    let newBall = function (mouseX, mouseY) {
+      let id = Math.random();
+      let x = Math.round(Math.random() * WIDTH);
+      let y = Math.round(Math.random() * HEIGHT);
+      let height = 10;
+      let width = 10;
+      let spdX = -5;
+      let spdY = -3;
+      let color = 'red';
+      ballCount++;
+
+      Ball(id, x, y, spdX, spdY, width, height, color);
+    }
+
+    function generateBalls(ammount) {
+      for (let i = 0; i < ammount; i++) {
+        setTimeout(newBall(), 3000);
+      }
+    }
+
+    let ballUpdate = function () {
+      for (let key in ballList) {
+        updateEntity(ballList[key])
+      }
+    }
+
+    let updateEntity = function (update) {
+      updateEntityPosition(update);
+      drawEntity(update);
+    };
+
+    let updateEntityPosition = function (update) {
+      update.x += update.spdX;
+      update.y += update.spdY;
+      if (update.x < 0 || update.x > WIDTH) {
+        update.spdX = -update.spdX;
+      }
+      if (update.y < 0 || update.y > HEIGHT) {
+        update.spdY = -update.spdX;
+      }
+    };
+
+    let drawEntity = function (draw) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = draw.color;
+      // ctx.fillRect(draw.x - draw.width / 2, draw.y - draw.height / 2, draw.width, draw.height);
+      ctx.arc(draw.x, draw.y, draw.width, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fill();
+      ctx.closePath();
+      ctx.restore();
+
+    };
+
+    function update() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);//clears old data
+      frameCount++;
+      let frameRate = ((Date.now() - timeStarted) / frameCount);
+      ballUpdate();
+      ctx.fillText("FPS: " + 1000 / frameRate, 50, 30);
+      ctx.fillText("Ball ct: " + ballCount, 50, 70);
+    }
+    setInterval(update, 16.7); //40ms is equivelint to 24fps || 16.7ms = 60fps
+
+    if (window.Worker) {
+      document.getElementById('web-workers-check').innerHTML = 'This Browser Supports Web Workers'
+      console.log('This Browser Supports Web Workers')
+    } else {
+      document.getElementById('web-workers-check').innerHTML = 'Sorry this browser does not support Web Workers'
+    }
+
+    window.onload = function () {
+      console.log('test after worker: ', test);
+    }
+
+    const worker = new Worker('worker.js');
+    worker.onmessage = e => {
+      console.log('worker complete: ', e.data);
+      document.getElementById('test-message').innerHTML = 'With worker test ended'
+    }
+
+    function test2() {
+      document.getElementById('test-message').innerHTML = 'With worker test started'
+      worker.postMessage(null)
+    }
+
+    function test1() { //Runs intense math calculation on same thread as the DOM
+
+      let testResult = 0;
+      console.log('test1 started')
+
+      for (let i = 0; i < 1000000 * 100; i++) {
+        let results = Math.random() * Math.random() * Math.random() / Math.random();
+        testResult = testResult + results;
+      }
+      console.log('test1 ended: ', testResult)
+      document.getElementById('test-message').innerHTML = 'Without worker test ended'
+    } 
+  </script>
+
+</body>
+
+</html>
